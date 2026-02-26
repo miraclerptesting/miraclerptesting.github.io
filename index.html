@@ -1178,9 +1178,11 @@ function loadData() {
   loadAnnouncements();
 
   onValue(ref(db,'config'),(s)=>{
-    if(s.exists()&&s.val().serverIP) document.getElementById('serverIP').textContent=s.val().serverIP;
-    if(s.exists()&&s.val().waNumber) {
-      // update WA links dynamically
+    if(s.exists()){
+      const cfg = s.val();
+      if(cfg.serverIP) document.getElementById('serverIP').textContent=cfg.serverIP;
+      if(cfg.waNumber) waNumber = String(cfg.waNumber);
+      if(cfg.waGroup) waGroup = cfg.waGroup;
     }
   });
 
