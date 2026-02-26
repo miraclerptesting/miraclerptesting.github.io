@@ -371,7 +371,6 @@ footer{background:var(--dark2);border-top:1px solid var(--border);padding:3rem 1
 <!-- FEATURES -->
 <div id="features">
 <div class="section">
-  <div class="section-label">// FITUR UNGGULAN</div>
   <h2 class="section-title">APA YANG <span>MEMBUAT KAMI BEDA</span></h2>
   <div class="features-grid" id="featGrid"></div>
 </div>
@@ -380,16 +379,14 @@ footer{background:var(--dark2);border-top:1px solid var(--border);padding:3rem 1
 <!-- ANNOUNCEMENTS -->
 <div id="announcements" style="background:var(--dark2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
 <div class="section">
-  <div class="section-label">// PEMBERITAHUAN</div>
-  <h2 class="section-title">SYSTEM <span>ANNOUNCEMENTS</span></h2>
-  <div id="announcementsList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);"></div>
+  <h2 class="section-title">PENGUMUMAN <span>PENTING</span></h2>
+  <div id="announcementsList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;"></div>
 </div>
 </div>
 
 <!-- COMMUNITY FEED -->
 <div id="community">
 <div class="section">
-  <div class="section-label">// KOMUNITAS</div>
   <h2 class="section-title">COMMUNITY <span>FEED</span></h2>
   <div class="feed-wrap">
     <div>
@@ -434,8 +431,7 @@ footer{background:var(--dark2);border-top:1px solid var(--border);padding:3rem 1
 <!-- NEWS -->
 <div id="news">
 <div class="section">
-  <div class="section-label">// PENGUMUMAN & BERITA</div>
-  <h2 class="section-title">UPDATE <span>TERBARU</span></h2>
+  <h2 class="section-title">BERITA <span>TERBARU</span></h2>
   <div class="news-wrap">
     <div class="news-main">
       <div class="news-tag" id="mnTag">UPDATE</div>
@@ -451,8 +447,7 @@ footer{background:var(--dark2);border-top:1px solid var(--border);padding:3rem 1
 <!-- STAFF -->
 <div id="staff">
 <div class="section">
-  <div class="section-label">// TIM KAMI</div>
-  <h2 class="section-title">JAJARAN <span>STAFF</span></h2>
+  <h2 class="section-title">TIM <span>STAFF</span></h2>
   <div class="staff-grid" id="staffGrid"></div>
 </div>
 </div>
@@ -460,7 +455,6 @@ footer{background:var(--dark2);border-top:1px solid var(--border);padding:3rem 1
 <!-- DAFTAR -->
 <div id="daftar">
 <div class="section">
-  <div class="section-label">// BERGABUNG</div>
   <h2 class="section-title">DAFTAR <span>SEKARANG</span></h2>
 
   <div id="daftarGuest">
@@ -1080,19 +1074,19 @@ function loadAnnouncements() {
   onValue(q, (snap) => {
     const announcementsList = document.getElementById('announcementsList');
     if (!snap.exists()) {
-      announcementsList.innerHTML = '<div style="grid-column:1/-1;padding:2rem;text-align:center;color:var(--muted);font-family:\'Space Mono\',monospace;font-size:.65rem;border:1px solid var(--border2);background:var(--dark2);">Tidak ada pengumuman.</div>';
+      announcementsList.innerHTML = '<div style="grid-column:1/-1;padding:2rem;text-align:center;color:var(--muted);font-family:\'Space Mono\',monospace;font-size:.75rem;">Belum ada pengumuman.</div>';
       return;
     }
     const announcements = Object.entries(snap.val()).reverse();
     announcementsList.innerHTML = announcements.map(([key, a]) => {
-      return `<div class="announcement-card" style="background:var(--dark2);padding:1.4rem;border-top:3px solid var(--gold);">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem;gap:.5rem;">
-          <span style="font-family:'Space Mono',monospace;font-size:.65rem;color:var(--gold);letter-spacing:1px;text-transform:uppercase;font-weight:700;">${a.tag || 'ANNOUNCEMENT'}</span>
-          <span style="font-family:'Space Mono',monospace;font-size:.55rem;color:var(--muted);">${timeAgo(a.ts)}</span>
+      return `<div style="background:var(--dark3);border-left:3px solid var(--gold);padding:1.5rem;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;gap:.8rem;">
+          <span style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;font-weight:700;">${a.tag || 'ANNOUNCEMENT'}</span>
+          <span style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);">${timeAgo(a.ts)}</span>
         </div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px;color:#E8E8F8;margin-bottom:.6rem;">${escHtml(a.title)}</div>
-        <div style="color:var(--text);font-size:.95rem;line-height:1.6;margin-bottom:.8rem;">${escHtml(a.content)}</div>
-        <div style="font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);">by ${a.author || 'Admin'}</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1.5px;color:#E8E8F8;margin-bottom:.5rem;">${escHtml(a.title)}</div>
+        <div style="color:var(--muted2);font-size:.9rem;line-height:1.6;margin-bottom:.8rem;">${escHtml(a.content)}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);">— ${a.author || 'Admin'}</div>
       </div>`;
     }).join('');
   });
