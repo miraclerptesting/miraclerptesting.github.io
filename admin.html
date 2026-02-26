@@ -505,12 +505,18 @@ tr:hover td{background:rgba(255,255,255,.015);}
             </div>
           </div>
           <div class="table-wrap">
-            <div class="table-header"><div class="table-title">STATS MANUAL</div></div>
+            <div class="table-header"><div class="table-title">SERVER QUERY</div></div>
             <div style="padding:1.2rem;">
-              <div class="form-group" style="margin-bottom:.8rem;"><label class="form-label">Online Players</label><input type="number" class="form-input" id="cfgOnline" placeholder="0"></div>
-              <div class="form-group" style="margin-bottom:.8rem;"><label class="form-label">Total Members</label><input type="number" class="form-input" id="cfgMembers" placeholder="0"></div>
-              <div class="form-group" style="margin-bottom:.8rem;"><label class="form-label">Fraksi Aktif</label><input type="number" class="form-input" id="cfgFactions" placeholder="0"></div>
-              <button class="btn-gold" onclick="saveStats()">UPDATE STATS</button>
+              <div class="form-group" style="margin-bottom:.8rem;">
+                <label class="form-label">Query IP:Port</label>
+                <input type="text" class="form-input" id="cfgQueryIP" placeholder="213.163.205.25:7825">
+              </div>
+              <div style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);margin-bottom:1rem;line-height:1.6;">
+                ✓ Stats online players akan auto-query dari server<br>
+                ✓ Update setiap 5 menit otomatis
+              </div>
+              <button class="btn-gold" onclick="saveQueryIP()">SIMPAN QUERY IP</button>
+              <button class="btn-gold" onclick="testQuery()" style="background:var(--dark4);color:var(--muted2);margin-top:.4rem;">TEST QUERY</button>
             </div>
           </div>
         </div>
@@ -755,6 +761,10 @@ window.showPage = function(page) {
   const titles = {dashboard:'DASHBOARD',wlPending:'PENDING WHITELIST',wlAll:'SEMUA WHITELIST',users:'USERS & ROLE',banned:'BANNED LIST',news:'NEWS & UPDATE',announce:'PENGUMUMAN',logs:'SYSTEM LOGS',settings:'SETTINGS'};
   document.getElementById('topbarTitle').textContent = titles[page]||page.toUpperCase();
   if (window.innerWidth<=768) document.getElementById('sidebar').classList.remove('open');
+  // Start query when opening settings
+  if (page === 'settings') {
+    setTimeout(() => startQueryInterval(), 100);
+  }
 };
 
 // ── WRITE LOG ──
@@ -1260,13 +1270,7 @@ function loadConfig() {
     document.getElementById('cfgIP').value = c.serverIP||'';
     document.getElementById('cfgWA').value = c.waNumber||'';
     document.getElementById('cfgWAGroup').value = c.waGroup||'';
-  });
-  onValue(ref(db,'stats'),(s)=>{
-    if (!s.exists()) return;
-    const d = s.val();
-    document.getElementById('cfgOnline').value = d.online||0;
-    document.getElementById('cfgMembers').value = d.members||0;
-    document.getElementById('cfgFactions').value = d.factions||0;
+    document.getElementById('cfgQueryIP').value = c.queryIP||'213.163.205.25:7825';
   });
 }
 
@@ -1281,10 +1285,125 @@ window.saveConfig = async function() {
   showToast('CONFIG DISIMPAN','','success');
 };
 
+window.saveQueryIP = async function() {
+  if (!canDo('settings')) return showToast('AKSES DITOLAK','Hanya Owner.','error');
+  const ip = document.getElementById('cfgQueryIP').value.trim();
+  if (!ip) return showToast('ERROR','Isi Query IP.','error');
+  await update(ref(db,'config'), { queryIP: ip });
+  writeLog('SYSTEM', `Query IP diupdate: ${ip} | oleh ${adminData.username}`);
+  showToast('QUERY IP DISIMPAN','Stats akan auto-update setiap 5 menit.','success');
+  startQueryInterval();
+};
+
+// ── SA-MP QUERY ──
+let queryInterval = null;
+async function queryServer(ipport) {
+  try {
+    // Gunakan query API (ada beberapa service gratis)
+    // Alternatif: gunakan backend service untuk query
+    const [ip, port] = ipport.split(':');
+    if (!ip || !port) throw new Error('Format IP:Port tidak valid');
+    
+    // Query via API service
+    const response = await fetch(`https://api.gta.world/api/servers?host=${ip}&port=${port}`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
+    }).catch(() => null);
+    
+    if (!response || !response.ok) {
+      // Fallback: coba alternative API
+      return await queryServerAlt(ip, port);
+    }
+    
+    const data = await response.json();
+    if (data && data[0]) {
+      const server = data[0];
+      return {
+        online: server.players || 0,
+        maxPlayers: server.maxplayers || 500,
+        ping: server.ping || 0
+      };
+    }
+    throw new Error('Server tidak ditemukan');
+  } catch(e) {
+    console.error('Query error:', e);
+    return null;
+  }
+}
+
+async function queryServerAlt(ip, port) {
+  try {
+    // Alternative: SA-MP list API
+    const response = await fetch(`https://samp-list.ru/en/server/${ip}/${port}`, {
+      method: 'GET'
+    }).catch(() => null);
+    
+    if (response && response.ok) {
+      const text = await response.text();
+      // Parse simple response
+      const onlineMatch = text.match(/Players:\s*(\d+)\//);
+      if (onlineMatch) {
+        return { online: parseInt(onlineMatch[1]) || 0 };
+      }
+    }
+  } catch(e) { console.error('Alt query error:', e); }
+  return null;
+}
+
+async function updateStatsFromQuery() {
+  try {
+    const snap = await get(ref(db,'config'));
+    const queryIP = snap.exists() ? snap.val().queryIP : null;
+    if (!queryIP) return;
+    
+    const result = await queryServer(queryIP);
+    if (result && result.online >= 0) {
+      const statsSnap = await get(ref(db,'stats'));
+      const stats = statsSnap.exists() ? statsSnap.val() : {};
+      await update(ref(db,'stats'), {
+        online: result.online,
+        members: stats.members || 0,
+        factions: stats.factions || 0,
+        news: stats.news || 0,
+        lastQueried: Date.now()
+      });
+      console.log('Stats updated from server:', result.online, 'online');
+    }
+  } catch(e) {
+    console.error('Update stats error:', e);
+  }
+}
+
+function startQueryInterval() {
+  if (queryInterval) clearInterval(queryInterval);
+  // Query setiap 5 menit
+  updateStatsFromQuery(); // first call
+  queryInterval = setInterval(updateStatsFromQuery, 5 * 60 * 1000);
+}
+
+window.testQuery = async function() {
+  const btn = event.target;
+  const orig = btn.textContent;
+  btn.textContent = 'TESTING...';
+  btn.disabled = true;
+  
+  const ip = document.getElementById('cfgQueryIP').value.trim();
+  if (!ip) return showToast('ERROR','Isi Query IP dulu.','error');
+  
+  const result = await queryServer(ip);
+  btn.textContent = orig;
+  btn.disabled = false;
+  
+  if (result) {
+    showToast('QUERY BERHASIL', `Online: ${result.online} pemain`, 'success');
+  } else {
+    showToast('QUERY GAGAL', 'Server tidak merespon atau format salah.', 'error');
+  }
+};
+
 window.saveStats = async function() {
   if (!canDo('settings')) return showToast('AKSES DITOLAK','Hanya Owner.','error');
   await update(ref(db,'stats'), {
-    online: parseInt(document.getElementById('cfgOnline').value)||0,
     members: parseInt(document.getElementById('cfgMembers').value)||0,
     factions: parseInt(document.getElementById('cfgFactions').value)||0
   });
