@@ -169,6 +169,13 @@ tr:hover td{background:rgba(255,255,255,.015);}
 .role-opt.active-developer{background:rgba(100,180,255,.08);border-color:var(--blue);color:var(--blue);}
 .role-opt.active-moderator{background:rgba(255,107,0,.08);border-color:var(--orange);color:var(--orange);}
 .role-opt.active-user{background:rgba(255,255,255,.04);border-color:var(--muted2);color:var(--muted2);}
+.role-opt.active-management{background:rgba(255,100,100,.08);border-color:#FF7575;color:#FF7575;}
+.role-opt.active-senioradmin{background:rgba(255,150,100,.08);border-color:#FF9966;color:#FF9966;}
+.role-opt.active-junioradmin{background:rgba(255,180,100,.08);border-color:#FFB86E;color:#FFB86E;}
+.role-opt.active-communityhandle{background:rgba(180,150,255,.08);border-color:#D5B8FF;color:#D5B8FF;}
+.role-opt.active-seniorhelper{background:rgba(100,180,255,.08);border-color:#80C8FF;color:#80C8FF;}
+.role-opt.active-juniorhelper{background:rgba(100,200,200,.08);border-color:#6DD5D5;color:#6DD5D5;}
+.role-opt.active-volunteer{background:rgba(100,200,150,.08);border-color:#6DD5A8;color:#6DD5A8;}
 
 /* ── IC NAME EDIT ── */
 .ic-edit-row{display:flex;gap:.5rem;align-items:center;margin-top:.3rem;}
@@ -296,6 +303,23 @@ tr:hover td{background:rgba(255,255,255,.015);}
           <div class="stat-card"><div class="stat-card-label">Banned</div><div class="stat-card-val red" id="dc-banned">0</div></div>
           <div class="stat-card"><div class="stat-card-label">Online</div><div class="stat-card-val blue" id="dc-online">0</div></div>
           <div class="stat-card"><div class="stat-card-label">Staff Aktif</div><div class="stat-card-val" id="dc-staff">0</div></div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header"><div class="table-title">SERVER MONITORING</div></div>
+          <div style="padding:1.5rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;">
+            <div style="background:var(--dark3);border:1px solid var(--border);padding:1.2rem;border-radius:4px;">
+              <div style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted);text-transform:uppercase;margin-bottom:.5rem;letter-spacing:1px;">Players Online</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold);font-weight:bold;" id="mon-players">-</div>
+            </div>
+            <div style="background:var(--dark3);border:1px solid var(--border);padding:1.2rem;border-radius:4px;">
+              <div style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted);text-transform:uppercase;margin-bottom:.5rem;letter-spacing:1px;">Max Capacity</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--green);font-weight:bold;" id="mon-maxplayers">-</div>
+            </div>
+            <div style="background:var(--dark3);border:1px solid var(--border);padding:1.2rem;border-radius:4px;">
+              <div style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted);text-transform:uppercase;margin-bottom:.5rem;letter-spacing:1px;">Server Ping</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--orange);font-weight:bold;" id="mon-ping">-</div>
+            </div>
+          </div>
         </div>
         <div class="table-wrap">
           <div class="table-header">
@@ -560,7 +584,14 @@ tr:hover td{background:rgba(255,255,255,.015);}
     <div class="modal-sub" id="roleTargetSub">Pilih role untuk user ini.</div>
     <div class="role-select" id="roleSelect">
       <div class="role-opt" onclick="selectRole(this,'user')">USER</div>
+      <div class="role-opt" onclick="selectRole(this,'volunteer')">VOLUNTEER</div>
+      <div class="role-opt" onclick="selectRole(this,'juniorhelper')">JUNIOR HELPER</div>
+      <div class="role-opt" onclick="selectRole(this,'seniorhelper')">SENIOR HELPER</div>
+      <div class="role-opt" onclick="selectRole(this,'junioradmin')">JUNIOR ADMIN</div>
+      <div class="role-opt" onclick="selectRole(this,'senioradmin')">SENIOR ADMIN</div>
       <div class="role-opt" onclick="selectRole(this,'moderator')">MODERATOR</div>
+      <div class="role-opt" onclick="selectRole(this,'management')">MANAGEMENT</div>
+      <div class="role-opt" onclick="selectRole(this,'communityhandle')">COMMUNITY HANDLE</div>
       <div class="role-opt" onclick="selectRole(this,'admin')">ADMIN</div>
       <div class="role-opt" onclick="selectRole(this,'headadmin')">HEAD ADMIN</div>
       <div class="role-opt" onclick="selectRole(this,'developer')">DEVELOPER</div>
@@ -624,7 +655,7 @@ let selectedAnnTag = 'ANNOUNCEMENT';
 let editingNewsKey = null;
 let allLogsCache = [];
 
-const STAFF_ROLES = ['moderator','admin','headadmin','developer','owner'];
+const STAFF_ROLES = ['volunteer','juniorhelper','seniorhelper','junioradmin','senioradmin','management','communityhandle','moderator','admin','headadmin','developer','owner'];
 
 // ── TOAST ──
 window.showToast = function(title, msg, type='') {
@@ -761,8 +792,8 @@ window.showPage = function(page) {
   const titles = {dashboard:'DASHBOARD',wlPending:'PENDING WHITELIST',wlAll:'SEMUA WHITELIST',users:'USERS & ROLE',banned:'BANNED LIST',news:'NEWS & UPDATE',announce:'PENGUMUMAN',logs:'SYSTEM LOGS',settings:'SETTINGS'};
   document.getElementById('topbarTitle').textContent = titles[page]||page.toUpperCase();
   if (window.innerWidth<=768) document.getElementById('sidebar').classList.remove('open');
-  // Start query when opening settings
-  if (page === 'settings') {
+  // Start query when opening dashboard or settings
+  if (page === 'dashboard' || page === 'settings') {
     setTimeout(() => startQueryInterval(), 100);
   }
 };
@@ -789,6 +820,13 @@ function loadDashStats() {
   onValue(ref(db,'stats'),(s)=>{
     const d = s.exists()?s.val():{};
     document.getElementById('dc-online').textContent = d.online||0;
+    // Update monitoring display
+    const monPlayers = document.getElementById('mon-players');
+    const monMaxPlayers = document.getElementById('mon-maxplayers');
+    const monPing = document.getElementById('mon-ping');
+    if (monPlayers) monPlayers.textContent = d.online||0;
+    if (monMaxPlayers) monMaxPlayers.textContent = d.maxPlayers||'-';
+    if (monPing) monPing.textContent = d.ping ? (d.ping + 'ms') : '-';
   });
   onValue(ref(db,'users'),(s)=>{
     if (!s.exists()) return;
@@ -1362,11 +1400,20 @@ async function updateStatsFromQuery() {
       const stats = statsSnap.exists() ? statsSnap.val() : {};
       await update(ref(db,'stats'), {
         online: result.online,
+        maxPlayers: result.maxPlayers || 500,
+        ping: result.ping || 0,
         members: stats.members || 0,
         factions: stats.factions || 0,
         news: stats.news || 0,
         lastQueried: Date.now()
       });
+      // Update monitoring display
+      const monPlayers = document.getElementById('mon-players');
+      const monMaxPlayers = document.getElementById('mon-maxplayers');
+      const monPing = document.getElementById('mon-ping');
+      if (monPlayers) monPlayers.textContent = result.online || '-';
+      if (monMaxPlayers) monMaxPlayers.textContent = result.maxPlayers || '-';
+      if (monPing) monPing.textContent = result.ping ? (result.ping + 'ms') : '-';
       console.log('Stats updated from server:', result.online, 'online');
     }
   } catch(e) {
