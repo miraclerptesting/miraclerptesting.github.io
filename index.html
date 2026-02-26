@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIRACLE RP — San Andreas Multiplayer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #FFD700;
+  --orange: #FF6B00;
+  --red: #E63946;
+  --green: #25D366;
+  --dark: #09090E;
+  --dark2: #0F0F18;
+  --dark3: #161622;
+  --dark4: #1E1E2E;
+  --border: rgba(255,215,0,0.12);
+  --border2: rgba(255,255,255,0.06);
+  --text: #DCDCE8;
+  --muted: #6A6A84;
+  --muted2: #9898B0;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden;min-height:100vh;}
+
+/* NOISE */
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9998;opacity:.4;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:var(--dark);}
+::-webkit-scrollbar-thumb{background:var(--gold);}
+
+/* ══ LOADER ══ */
+#loader{position:fixed;inset:0;background:var(--dark);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;transition:opacity .5s ease;}
+#loader.hide{opacity:0;pointer-events:none;}
+.loader-logo{font-family:'Bebas Neue',sans-serif;font-size:3.5rem;letter-spacing:10px;color:var(--gold);text-shadow:0 0 40px rgba(255,215,0,.4);animation:loadpulse 1.2s ease infinite;}
+.loader-bar{width:180px;height:2px;background:var(--dark3);overflow:hidden;border-radius:2px;}
+.loader-prog{height:100%;background:linear-gradient(90deg,var(--gold),var(--orange));animation:loadbar 1.4s ease-in-out infinite;}
+@keyframes loadbar{0%{width:0%;margin-left:0%}50%{width:55%;margin-left:22%}100%{width:0%;margin-left:100%}}
+@keyframes loadpulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ══ NAVBAR ══ */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;background:rgba(9,9,14,.95);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:4px;color:var(--gold);text-shadow:0 0 16px rgba(255,215,0,.4);text-decoration:none;}
+.nav-logo span{color:var(--orange);}
+.nav-links{display:flex;gap:1.8rem;list-style:none;}
+.nav-links a{color:var(--muted2);text-decoration:none;font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;transition:color .2s;}
+.nav-links a:hover{color:var(--gold);}
+.nav-right{display:flex;align-items:center;gap:.8rem;}
+.btn-nav-login{border:1px solid var(--border);color:var(--muted2);padding:7px 16px;font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:1.5px;background:none;cursor:pointer;transition:all .2s;}
+.btn-nav-login:hover{border-color:var(--gold);color:var(--gold);}
+.btn-nav-wa{background:var(--green);color:#000;padding:7px 16px;font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;letter-spacing:1px;text-decoration:none;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);transition:all .2s;}
+.btn-nav-wa:hover{background:#1fba58;}
+.nav-user{display:none;align-items:center;gap:.6rem;font-family:'Space Mono',monospace;font-size:.65rem;color:var(--muted2);}
+.nav-user.show{display:flex;}
+.nav-user-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:blinkdot 1.5s ease infinite;}
+.nav-user-name{color:var(--gold);font-size:.7rem;font-weight:700;}
+.btn-logout{background:none;border:1px solid rgba(230,57,70,.3);color:var(--red);padding:5px 12px;font-family:'Space Mono',monospace;font-size:.6rem;cursor:pointer;transition:all .2s;}
+.btn-logout:hover{background:rgba(230,57,70,.1);}
+.hamburger{display:none;flex-direction:column;gap:4px;background:none;border:none;cursor:pointer;padding:4px;}
+.hamburger span{width:22px;height:2px;background:var(--muted2);transition:all .3s;}
+
+/* ══ MOBILE MENU ══ */
+.mobile-menu{display:none;position:fixed;top:56px;left:0;right:0;background:rgba(9,9,14,.98);border-bottom:1px solid var(--border);padding:1.5rem;flex-direction:column;gap:1rem;z-index:99;backdrop-filter:blur(12px);}
+.mobile-menu.open{display:flex;}
+.mobile-menu a{color:var(--muted2);text-decoration:none;font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;padding:.5rem 0;border-bottom:1px solid var(--border2);}
+
+/* ══ HERO ══ */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;padding:80px 1.5rem 4rem;text-align:center;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 15% 50%,rgba(255,107,0,.07) 0%,transparent 55%),radial-gradient(ellipse at 85% 20%,rgba(255,215,0,.05) 0%,transparent 55%),radial-gradient(ellipse at 50% 90%,rgba(230,57,70,.04) 0%,transparent 50%);}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,215,0,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,215,0,.03) 1px,transparent 1px);background-size:50px 50px;mask-image:radial-gradient(ellipse at center,black 20%,transparent 70%);}
+.hero-badge{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:3px;color:var(--orange);border:1px solid rgba(255,107,0,.25);padding:5px 14px;margin-bottom:1.5rem;animation:fadeUp .6s ease both;}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.2rem,11vw,9rem);line-height:.88;letter-spacing:clamp(4px,1.5vw,10px);animation:fadeUp .6s ease .1s both;}
+.hero-title .t1{color:#fff;display:block;}
+.hero-title .t2{color:transparent;-webkit-text-stroke:1.5px var(--gold);display:block;text-shadow:0 0 50px rgba(255,215,0,.2);}
+.hero-title .t3{color:var(--orange);display:block;font-size:.38em;letter-spacing:clamp(6px,2vw,14px);}
+.hero-sub{margin-top:1.2rem;font-size:clamp(.9rem,2.5vw,1.1rem);color:var(--muted2);letter-spacing:2px;text-transform:uppercase;font-weight:300;animation:fadeUp .6s ease .2s both;}
+.ip-box{display:inline-flex;align-items:center;gap:1rem;background:var(--dark3);border:1px solid var(--border);padding:.8rem 1.5rem;margin-top:1.8rem;font-family:'Space Mono',monospace;animation:fadeUp .6s ease .3s both;flex-wrap:wrap;justify-content:center;}
+.ip-label{font-size:.55rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;}
+.ip-value{font-size:.9rem;color:var(--gold);letter-spacing:1.5px;font-weight:700;}
+.ip-copy{background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);color:var(--gold);padding:4px 10px;font-size:.6rem;cursor:pointer;font-family:'Space Mono',monospace;letter-spacing:1px;transition:all .2s;white-space:nowrap;}
+.ip-copy:hover{background:rgba(255,215,0,.18);}
+.hero-cta{display:flex;gap:.8rem;margin-top:2rem;animation:fadeUp .6s ease .4s both;flex-wrap:wrap;justify-content:center;}
+.btn-primary{background:var(--gold);color:#000;padding:13px 28px;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:3px;text-decoration:none;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);transition:all .2s;display:inline-block;border:none;cursor:pointer;}
+.btn-primary:hover{background:var(--orange);color:#fff;transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,107,0,.35);}
+.btn-secondary{border:1px solid var(--border);color:var(--gold);padding:13px 28px;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:3px;text-decoration:none;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);transition:all .2s;display:inline-block;background:none;cursor:pointer;}
+.btn-secondary:hover{border-color:var(--gold);background:rgba(255,215,0,.05);}
+/* FIX: scroll indicator - removed conflicting animation */
+.scroll-ind{position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;animation:fadeUp .6s ease .8s forwards;}
+.scroll-text{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:3px;color:var(--muted);}
+.scroll-line{width:1px;height:36px;background:linear-gradient(to bottom,rgba(255,215,0,.5),transparent);animation:scrolldown 1.8s ease-in-out infinite;}
+@keyframes scrolldown{0%{transform:scaleY(0) translateY(0);transform-origin:top;opacity:1}
+50%{transform:scaleY(1) translateY(0);transform-origin:top;opacity:1}
+100%{transform:scaleY(1) translateY(20px);transform-origin:top;opacity:0}}
+
+/* ══ STATS BAR ══ */
+.stats-bar{display:flex;justify-content:center;gap:0;background:var(--dark2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.stat{text-align:center;padding:2rem 2.5rem;border-right:1px solid var(--border);flex:1;min-width:120px;}
+.stat:last-child{border-right:none;}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;color:var(--gold);line-height:1;text-shadow:0 0 16px rgba(255,215,0,.3);}
+.stat-label{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase;margin-top:4px;}
+
+/* ══ SECTIONS ══ */
+.section{padding:5rem 1.5rem;max-width:1180px;margin:0 auto;}
+.section-label{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:4px;color:var(--orange);text-transform:uppercase;margin-bottom:.6rem;}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.8rem,4.5vw,3.5rem);letter-spacing:3px;line-height:1;margin-bottom:2.5rem;color:#E8E8F8;}
+.section-title span{color:var(--gold);}
+
+/* ══ FEATURES ══ */
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);}
+.feat-card{background:var(--dark2);padding:2rem;transition:background .3s;position:relative;overflow:hidden;}
+.feat-card::before{content:'';position:absolute;top:0;left:0;width:2px;height:0;background:var(--gold);transition:height .35s;}
+.feat-card:hover{background:var(--dark3);}
+.feat-card:hover::before{height:100%;}
+.feat-icon{font-size:1.8rem;margin-bottom:.8rem;}
+.feat-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;margin-bottom:.6rem;color:var(--gold);}
+.feat-desc{color:var(--muted2);font-size:.9rem;line-height:1.75;font-weight:400;}
+
+/* ══ NEWS ══ */
+.news-wrap{display:grid;grid-template-columns:1fr 340px;gap:1px;background:var(--border);border:1px solid var(--border);}
+.news-main{background:var(--dark2);padding:2.5rem;}
+.news-sidebar{background:var(--dark2);display:flex;flex-direction:column;gap:1px;}
+.news-side-item{background:var(--dark3);padding:1.2rem 1.5rem;cursor:pointer;transition:background .2s;border-left:2px solid transparent;}
+.news-side-item:hover,.news-side-item.active{border-left-color:var(--gold);background:rgba(255,215,0,.03);}
+.news-tag{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:2px;color:var(--orange);text-transform:uppercase;margin-bottom:.3rem;}
+.news-main-title{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:2px;margin-bottom:.8rem;line-height:1.1;color:#E8E8F8;}
+.news-content{color:var(--muted2);line-height:1.85;font-size:.92rem;font-weight:400;}
+.news-meta{margin-top:1.2rem;display:flex;align-items:center;gap:1rem;font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);}
+.news-meta-date{color:var(--gold);}
+.news-side-title{font-size:.9rem;font-weight:600;margin-bottom:.25rem;line-height:1.3;color:var(--text);}
+.news-side-date{font-family:'Space Mono',monospace;font-size:.55rem;color:var(--muted);}
+
+/* ══ STAFF ══ */
+.staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);}
+.staff-card{background:var(--dark2);padding:1.8rem 1.2rem;text-align:center;transition:background .3s;}
+.staff-card:hover{background:var(--dark3);}
+.staff-ava{width:52px;height:52px;margin:0 auto .8rem;display:flex;align-items:center;justify-content:center;font-size:1.4rem;background:var(--dark4);border:1px solid var(--border);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);}
+.staff-name{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2px;margin-bottom:.3rem;color:#E0E0F0;}
+.role-badge{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:1.5px;padding:3px 8px;display:inline-block;}
+.r-owner{background:rgba(255,215,0,.08);color:var(--gold);border:1px solid rgba(255,215,0,.25);}
+.r-admin{background:rgba(230,57,70,.08);color:#F07070;border:1px solid rgba(230,57,70,.25);}
+.r-mod{background:rgba(255,107,0,.08);color:#FF9050;border:1px solid rgba(255,107,0,.25);}
+.r-dev{background:rgba(100,180,255,.08);color:#80C8FF;border:1px solid rgba(100,180,255,.25);}
+.r-headadmin{background:rgba(180,100,255,.08);color:#CC88FF;border:1px solid rgba(180,100,255,.25);}
+
+/* ══ COMMUNITY / FEED ══ */
+#community{background:var(--dark2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.feed-wrap{display:grid;grid-template-columns:1fr 300px;gap:1.5rem;align-items:start;}
+@media(max-width:1024px){.feed-wrap{grid-template-columns:1fr;}}
+.feed-post-box{background:var(--dark3);border:1px solid var(--border2);padding:1.2rem;margin-bottom:1rem;}
+.feed-post-box textarea{width:100%;background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:10px 12px;font-family:'Rajdhani',sans-serif;font-size:.95rem;resize:vertical;min-height:80px;outline:none;transition:border-color .2s;}
+.feed-post-box textarea:focus{border-color:rgba(255,215,0,.3);}
+.feed-post-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.6rem;flex-wrap:wrap;gap:.5rem;}
+.feed-post-hint{font-family:'Space Mono',monospace;font-size:.55rem;color:var(--muted);}
+.btn-post{background:var(--gold);color:#000;border:none;padding:8px 20px;font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:2px;cursor:pointer;transition:all .2s;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);}
+.btn-post:hover{background:var(--orange);color:#fff;}
+.btn-post:disabled{background:var(--muted);cursor:not-allowed;}
+.feed-list{display:flex;flex-direction:column;gap:1px;}
+.post-card{background:var(--dark2);border:1px solid var(--border2);padding:1.4rem;}
+.post-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem;flex-wrap:wrap;gap:.3rem;}
+.post-author{display:flex;align-items:center;gap:.5rem;}
+.post-ava{width:32px;height:32px;background:var(--dark4);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;}
+.post-name{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:2px;color:var(--gold);}
+.post-role-badge{font-family:'Space Mono',monospace;font-size:.5rem;padding:2px 6px;margin-left:.3rem;}
+.post-time{font-family:'Space Mono',monospace;font-size:.55rem;color:var(--muted);}
+.post-content{color:var(--text);font-size:.95rem;line-height:1.7;margin-bottom:.8rem;word-break:break-word;}
+.post-actions{display:flex;gap:.6rem;align-items:center;border-top:1px solid var(--border2);padding-top:.7rem;}
+.btn-like{background:none;border:1px solid var(--border2);color:var(--muted2);padding:4px 12px;font-family:'Space Mono',monospace;font-size:.6rem;cursor:pointer;transition:all .2s;letter-spacing:1px;}
+.btn-like:hover,.btn-like.liked{border-color:var(--red);color:var(--red);}
+.btn-comment-toggle{background:none;border:1px solid var(--border2);color:var(--muted2);padding:4px 12px;font-family:'Space Mono',monospace;font-size:.6rem;cursor:pointer;transition:all .2s;letter-spacing:1px;}
+.btn-comment-toggle:hover{border-color:var(--gold);color:var(--gold);}
+.btn-delete-post{background:none;border:none;color:var(--muted);font-size:.7rem;cursor:pointer;margin-left:auto;padding:4px 8px;font-family:'Space Mono',monospace;transition:color .2s;}
+.btn-delete-post:hover{color:var(--red);}
+.comments-section{margin-top:.8rem;border-top:1px solid var(--border2);padding-top:.8rem;display:none;}
+.comments-section.open{display:block;}
+.comment-item{display:flex;gap:.6rem;margin-bottom:.6rem;align-items:flex-start;}
+.comment-ava{width:24px;height:24px;background:var(--dark4);border:1px solid var(--border2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;flex-shrink:0;}
+.comment-body{flex:1;}
+.comment-name{font-family:'Bebas Neue',sans-serif;font-size:.8rem;letter-spacing:1.5px;color:var(--muted2);}
+.comment-text{font-size:.85rem;color:var(--text);line-height:1.5;}
+.comment-time{font-family:'Space Mono',monospace;font-size:.52rem;color:var(--muted);}
+.comment-input-row{display:flex;gap:.5rem;margin-top:.6rem;}
+.comment-input{flex:1;background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:7px 10px;font-family:'Rajdhani',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s;}
+.comment-input:focus{border-color:rgba(255,215,0,.3);}
+.btn-send-comment{background:var(--dark3);border:1px solid var(--border);color:var(--gold);padding:7px 14px;font-family:'Space Mono',monospace;font-size:.6rem;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.btn-send-comment:hover{background:rgba(255,215,0,.1);}
+.feed-sidebar-widget{background:var(--dark3);border:1px solid var(--border2);padding:1.2rem;margin-bottom:1rem;}
+.widget-title{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:3px;color:var(--gold);margin-bottom:.8rem;border-bottom:1px solid var(--border2);padding-bottom:.4rem;}
+.online-member-item{display:flex;align-items:center;gap:.5rem;padding:.3rem 0;font-size:.85rem;color:var(--muted2);}
+.online-dot-sm{width:6px;height:6px;background:var(--green);border-radius:50%;flex-shrink:0;}
+
+/* ══ DAFTAR SECTION ══ */
+.daftar-wrap{background:var(--dark2);border:1px solid var(--border);padding:3rem;position:relative;overflow:hidden;}
+.daftar-wrap::before{content:'';position:absolute;top:-30%;right:-15%;width:400px;height:400px;background:radial-gradient(circle,rgba(255,215,0,.04),transparent 60%);pointer-events:none;}
+.daftar-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start;}
+.daftar-info h3{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;margin-bottom:.8rem;color:#E8E8F8;}
+.daftar-info p{color:var(--muted2);line-height:1.85;font-size:.92rem;font-weight:400;margin-bottom:1.2rem;}
+.wa-box{display:flex;align-items:center;gap:.8rem;background:rgba(37,211,102,.07);border:1px solid rgba(37,211,102,.18);padding:1rem 1.2rem;margin-bottom:1.2rem;}
+.wa-box-icon{font-size:1.8rem;}
+.wa-box strong{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:2px;color:var(--green);display:block;}
+.wa-box span{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);}
+.pill{display:inline-block;font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:1px;padding:3px 8px;background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.18);color:var(--gold);margin:2px;}
+.form-group{margin-bottom:1rem;}
+.form-label{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--muted2);text-transform:uppercase;display:block;margin-bottom:.4rem;}
+.form-input{width:100%;background:var(--dark3);border:1px solid var(--border2);color:var(--text);padding:11px 14px;font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:600;outline:none;transition:border-color .2s;appearance:none;-webkit-appearance:none;}
+.form-input:focus{border-color:rgba(255,215,0,.4);}
+.form-input::placeholder{color:var(--muted);font-weight:300;}
+.form-input option{background:var(--dark3);}
+.btn-submit{width:100%;background:var(--gold);color:#000;border:none;padding:14px;font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:4px;cursor:pointer;transition:all .2s;margin-top:.5rem;}
+.btn-submit:hover{background:var(--orange);color:#fff;transform:translateY(-2px);box-shadow:0 8px 20px rgba(255,107,0,.3);}
+.btn-submit:disabled{background:var(--muted);cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* ══ LOGIN MODAL ══ */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:500;align-items:center;justify-content:center;padding:1rem;}
+.overlay.open{display:flex;}
+.modal{background:var(--dark2);border:1px solid var(--border);padding:2.5rem;width:100%;max-width:420px;position:relative;animation:modalIn .3s ease;}
+@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.modal-close{position:absolute;top:.8rem;right:.8rem;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:4px;}
+.modal-close:hover{color:var(--gold);}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;color:var(--gold);margin-bottom:.3rem;}
+.modal-sub{color:var(--muted2);font-size:.88rem;margin-bottom:1.8rem;font-weight:400;line-height:1.6;}
+.auth-error{background:rgba(230,57,70,.1);border:1px solid rgba(230,57,70,.25);color:#F07070;padding:.7rem 1rem;font-family:'Space Mono',monospace;font-size:.65rem;margin-bottom:1rem;display:none;}
+.auth-error.show{display:block;}
+.btn-google{display:flex;align-items:center;justify-content:center;gap:.7rem;width:100%;background:#fff;color:#1a1a1a;border:none;padding:13px 20px;font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s;margin-top:.5rem;}
+.btn-google:hover{background:#f0f0f0;transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,255,255,.15);}
+.modal-success .modal-title{color:var(--green);}
+
+/* ══ TOAST ══ */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--dark3);border:1px solid var(--border);padding:.9rem 1.3rem;z-index:9000;transform:translateX(130%);transition:transform .4s cubic-bezier(.175,.885,.32,1.275);max-width:300px;min-width:220px;}
+.toast.show{transform:translateX(0);}
+.toast-title{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:2px;color:var(--gold);margin-bottom:.2rem;}
+.toast.error .toast-title{color:var(--red);}
+.toast.success .toast-title{color:var(--green);}
+.toast-msg{font-size:.82rem;color:var(--muted2);font-weight:400;line-height:1.5;}
+
+/* ══ FOOTER ══ */
+footer{background:var(--dark2);border-top:1px solid var(--border);padding:3rem 1.5rem 1.5rem;text-align:center;}
+.footer-logo{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;letter-spacing:7px;color:var(--gold);text-shadow:0 0 24px rgba(255,215,0,.25);margin-bottom:.3rem;}
+.footer-logo span{color:var(--orange);}
+.footer-tag{font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:4px;color:var(--muted);margin-bottom:1.5rem;}
+.footer-links{display:flex;justify-content:center;gap:1.8rem;list-style:none;margin-bottom:1.5rem;flex-wrap:wrap;}
+.footer-links a{color:var(--muted);text-decoration:none;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:2px;transition:color .2s;}
+.footer-links a:hover{color:var(--gold);}
+.footer-copy{font-family:'Space Mono',monospace;font-size:.55rem;color:rgba(90,90,114,.4);letter-spacing:2px;}
+
+/* ══ ANIMATIONS ══ */
+@keyframes blinkdot{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+/* ══ DELAY BANNER ══ */
+.delay-banner{background:rgba(255,107,0,.08);border:1px solid rgba(255,107,0,.22);padding:1rem 1.2rem;margin-bottom:1.2rem;display:none;}
+.delay-banner.show{display:block;}
+.delay-banner p{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--orange);letter-spacing:1px;}
+.delay-timer{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--gold);letter-spacing:3px;margin-top:.3rem;}
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:900px){
+  .news-wrap{grid-template-columns:1fr;}
+  .daftar-grid{grid-template-columns:1fr;gap:2rem;}
+  .daftar-wrap{padding:2rem 1.5rem;}
+  .feed-wrap{grid-template-columns:1fr;}
+}
+@media(max-width:700px){
+  .nav-links{display:none;}
+  .hamburger{display:flex;}
+  .hero{padding:70px 1rem 3rem;}
+  .section{padding:3.5rem 1rem;}
+  .stat{padding:1.5rem 1rem;}
+  .stat-num{font-size:1.9rem;}
+  .staff-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}
+  .modal{padding:1.8rem 1.2rem;}
+}
+@media(max-width:400px){
+  .hero-title{font-size:clamp(2.6rem,9vw,3.5rem);}
+  .hero-cta{gap:.6rem;}
+  .btn-primary,.btn-secondary{padding:11px 20px;font-size:1rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-logo">MIRACLE</div>
+  <div class="loader-bar"><div class="loader-prog"></div></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-title" id="toastTitle">INFO</div>
+  <div class="toast-msg" id="toastMsg"></div>
+</div>
+
+<!-- NAVBAR -->
+<nav>
+  <a href="#" class="nav-logo">MIRACLE<span>RP</span></a>
+  <ul class="nav-links">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#features">Fitur</a></li>
+    <li><a href="#community">Community</a></li>
+    <li><a href="#news">Berita</a></li>
+    <li><a href="#staff">Staff</a></li>
+    <li><a href="#daftar">Daftar</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-user" id="navUser">
+      <span class="nav-user-dot"></span>
+      <span class="nav-user-name" id="navUserName">-</span>
+      <button class="btn-logout" onclick="doLogout()">LOGOUT</button>
+    </div>
+    <button class="btn-nav-login" id="btnNavLogin" onclick="openModal('modalLogin')">LOGIN</button>
+    <a href="#" class="btn-nav-wa" onclick="openWA(event)">📱 WA</a>
+    <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#home" onclick="closeMobileMenu()">Home</a>
+  <a href="#features" onclick="closeMobileMenu()">Fitur</a>
+  <a href="#community" onclick="closeMobileMenu()">Community</a>
+  <a href="#news" onclick="closeMobileMenu()">Berita</a>
+  <a href="#staff" onclick="closeMobileMenu()">Staff</a>
+  <a href="#daftar" onclick="closeMobileMenu()">Daftar</a>
+</div>
+
+<!-- HERO -->
+<div id="home">
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-badge">⚡ SA-MP WHATSAPP ONLY SYSTEM</div>
+  <h1 class="hero-title">
+    <span class="t1">MIRACLE</span>
+    <span class="t2">ROLEPLAY</span>
+    <span class="t3">SAN ANDREAS MULTIPLAYER</span>
+  </h1>
+  <p class="hero-sub">Whatsapp Server Indonesia &mdash; Since 2025</p>
+  <div class="ip-box">
+    <div>
+      <div class="ip-label">Server IP</div>
+      <div class="ip-value" id="serverIP">samp.miracle-rp.id:7777</div>
+    </div>
+    <button class="ip-copy" onclick="copyIP()">COPY</button>
+  </div>
+  <div class="hero-cta">
+    <button class="btn-primary" onclick="scrollToDaftar()">DAFTAR SEKARANG</button>
+    <a href="#features" class="btn-secondary">LIHAT FITUR</a>
+  </div>
+  <div class="scroll-ind">
+    <span class="scroll-text">SCROLL</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat"><div class="stat-num" id="statOnline">0</div><div class="stat-label"><span style="display:inline-block;width:7px;height:7px;background:var(--green);border-radius:50%;margin-right:4px;animation:blinkdot 1.5s infinite;vertical-align:middle;"></span>Online</div></div>
+  <div class="stat"><div class="stat-num" id="statMembers">0</div><div class="stat-label">Member</div></div>
+  <div class="stat"><div class="stat-num" id="statFactions">0</div><div class="stat-label">Fraksi</div></div>
+  <div class="stat"><div class="stat-num" id="statNews">0</div><div class="stat-label">Berita</div></div>
+</div>
+
+<!-- FEATURES -->
+<div id="features">
+<div class="section">
+  <div class="section-label">// FITUR UNGGULAN</div>
+  <h2 class="section-title">APA YANG <span>MEMBUAT KAMI BEDA</span></h2>
+  <div class="features-grid" id="featGrid"></div>
+</div>
+</div>
+
+<!-- ANNOUNCEMENTS -->
+<div id="announcements" style="background:var(--dark2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+<div class="section">
+  <div class="section-label">// PEMBERITAHUAN</div>
+  <h2 class="section-title">SYSTEM <span>ANNOUNCEMENTS</span></h2>
+  <div id="announcementsList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);"></div>
+</div>
+</div>
+
+<!-- COMMUNITY FEED -->
+<div id="community">
+<div class="section">
+  <div class="section-label">// KOMUNITAS</div>
+  <h2 class="section-title">COMMUNITY <span>FEED</span></h2>
+  <div class="feed-wrap">
+    <div>
+      <!-- Post box (login required) -->
+      <div id="feedPostBox" style="display:none;">
+        <div class="feed-post-box">
+          <textarea id="postContent" placeholder="Bagikan sesuatu ke komunitas...&#10;Cooldown: 1 jam per post"></textarea>
+          <div class="feed-post-footer">
+            <span class="feed-post-hint" id="postCooldownHint"></span>
+            <button class="btn-post" id="btnPost" onclick="submitPost()">POST</button>
+          </div>
+        </div>
+      </div>
+      <div id="feedLoginHint" style="background:var(--dark3);border:1px solid var(--border2);padding:1rem 1.4rem;margin-bottom:1rem;font-family:'Space Mono',monospace;font-size:.65rem;color:var(--muted);">
+        🔒 <span style="cursor:pointer;color:var(--gold);text-decoration:underline;" onclick="openModal('modalLogin')">Login</span> untuk buat postingan & komentar.
+      </div>
+      <div class="feed-list" id="feedList"><div style="padding:2rem;text-align:center;color:var(--muted);font-family:'Space Mono',monospace;font-size:.65rem;">Memuat postingan...</div></div>
+    </div>
+    <div>
+      <div class="feed-sidebar-widget">
+        <div class="widget-title">📊 STATISTIK</div>
+        <div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted2);">
+          <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border2);">Total Post <span id="wStatPosts" style="color:var(--gold);">0</span></div>
+          <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border2);">Member Online <span id="wStatOnline" style="color:var(--green);">0</span></div>
+          <div style="display:flex;justify-content:space-between;padding:.3rem 0;">Member WL <span id="wStatWL" style="color:var(--gold);">0</span></div>
+        </div>
+      </div>
+      <div class="feed-sidebar-widget">
+        <div class="widget-title">📋 RULES</div>
+        <ul style="font-size:.82rem;color:var(--muted2);line-height:1.9;padding-left:.5rem;list-style:none;">
+          <li>→ Hormati sesama member</li>
+          <li>→ Dilarang SARA & NSFW</li>
+          <li>→ Cooldown post: 1 jam</li>
+          <li>→ Staff berhak hapus post</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- NEWS -->
+<div id="news">
+<div class="section">
+  <div class="section-label">// PENGUMUMAN & BERITA</div>
+  <h2 class="section-title">UPDATE <span>TERBARU</span></h2>
+  <div class="news-wrap">
+    <div class="news-main">
+      <div class="news-tag" id="mnTag">UPDATE</div>
+      <h3 class="news-main-title" id="mnTitle">Memuat...</h3>
+      <div class="news-content" id="mnContent">Harap tunggu.</div>
+      <div class="news-meta"><span class="news-meta-date" id="mnDate">-</span><span id="mnAuthor">-</span></div>
+    </div>
+    <div class="news-sidebar" id="newsSidebar"></div>
+  </div>
+</div>
+</div>
+
+<!-- STAFF -->
+<div id="staff">
+<div class="section">
+  <div class="section-label">// TIM KAMI</div>
+  <h2 class="section-title">JAJARAN <span>STAFF</span></h2>
+  <div class="staff-grid" id="staffGrid"></div>
+</div>
+</div>
+
+<!-- DAFTAR -->
+<div id="daftar">
+<div class="section">
+  <div class="section-label">// BERGABUNG</div>
+  <h2 class="section-title">DAFTAR <span>SEKARANG</span></h2>
+
+  <div id="daftarGuest">
+    <div style="background:var(--dark2);border:1px solid var(--border);padding:3rem;text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:1rem;">🔒</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;margin-bottom:.6rem;color:#E8E8F8;">LOGIN DIPERLUKAN</div>
+      <p style="color:var(--muted2);font-size:.92rem;margin-bottom:1.8rem;font-weight:400;max-width:400px;margin-left:auto;margin-right:auto;line-height:1.7;">Kamu harus login atau buat akun terlebih dahulu untuk mengakses form pendaftaran whitelist.</p>
+      <button class="btn-primary" onclick="openModal('modalLogin')">LOGIN / DAFTAR AKUN</button>
+    </div>
+  </div>
+
+  <div id="daftarUser" style="display:none;">
+    <div class="daftar-wrap">
+      <div class="delay-banner" id="delayBanner">
+        <p>⏳ PENDAFTARAN DALAM MASA TUNGGU</p>
+        <p style="margin-top:.3rem;font-size:.62rem;color:var(--muted2);">Kamu sudah pernah mendaftar. Tunggu konfirmasi staff atau delay 24 jam habis.</p>
+        <div class="delay-timer" id="delayTimer">--:--:--</div>
+      </div>
+      <div id="wlStatusBanner" style="display:none;background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.2);padding:1rem 1.2rem;margin-bottom:1.2rem;">
+        <p style="font-family:'Space Mono',monospace;font-size:.65rem;color:var(--green);">✅ KAMU SUDAH WHITELIST — Selamat bergabung di MIRACLE RP!</p>
+        <p style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted2);margin-top:.3rem;">Nama IC: <span id="wlICName" style="color:var(--gold);">-</span></p>
+      </div>
+      <div id="bannedBanner" style="display:none;background:rgba(230,57,70,.08);border:1px solid rgba(230,57,70,.2);padding:1rem 1.2rem;margin-bottom:1.2rem;">
+        <p style="font-family:'Space Mono',monospace;font-size:.65rem;color:#F07070;">🚫 AKUN KAMU DIBANNED — Hubungi admin jika ada pertanyaan.</p>
+        <p id="banReason" style="font-size:.75rem;color:var(--muted2);margin-top:.3rem;"></p>
+      </div>
+
+      <div class="daftar-grid" id="daftarForm">
+        <div class="daftar-info">
+          <h3>CARA BERGABUNG</h3>
+          <p>Isi form di samping dan admin kami akan menghubungi kamu melalui <strong style="color:var(--green)">WhatsApp</strong> dalam 1×24 jam untuk verifikasi nomor aktif.</p>
+          <div class="wa-box">
+            <div class="wa-box-icon">📱</div>
+            <div>
+              <strong>WHATSAPP ONLY</strong>
+              <span>Verifikasi dilakukan via WA — cepat & aman</span>
+            </div>
+          </div>
+          <p>Setelah daftar kamu akan mendapat:</p>
+          <div style="margin-bottom:1rem;">
+            <span class="pill">✓ Account ID</span>
+            <span class="pill">✓ Tutorial Join</span>
+            <span class="pill">✓ Starter Kit</span>
+            <span class="pill">✓ WA Group</span>
+          </div>
+          <p style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:1px;">⚠ 1 akun hanya bisa daftar 1x per 24 jam setelah konfirmasi.</p>
+        </div>
+
+        <div>
+          <div class="form-group">
+            <label class="form-label">Nama IG (Format: Nama_Belakang)</label>
+            <input type="text" class="form-input" id="fName" placeholder="Contoh: John_Doe">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nomor WhatsApp Aktif</label>
+            <input type="text" class="form-input" id="fWA" placeholder="08xxxxxxxxxx">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Umur</label>
+            <input type="number" class="form-input" id="fAge" placeholder="17" min="15" max="60">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pilih Fraksi Minat</label>
+            <select class="form-input" id="fFaction">
+              <option value="">-- Pilih Fraksi --</option>
+              <option>Los Santos Police Department</option>
+              <option>San Andreas Fire Department</option>
+              <option>Los Santos Mafia</option>
+              <option>Grove Street Families</option>
+              <option>Ballas Gang</option>
+              <option>Los Santos Vagos</option>
+              <option>Civilian (Sipil)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pengalaman Roleplay</label>
+            <select class="form-input" id="fExp">
+              <option value="pemula">Pemula (Baru Mulai)</option>
+              <option value="menengah">Menengah (1-2 Tahun)</option>
+              <option value="veteran">Veteran (3+ Tahun)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Alasan Bergabung</label>
+            <textarea class="form-input" id="fReason" rows="3" placeholder="Ceritakan alasanmu bergabung..." style="resize:vertical;min-height:80px;"></textarea>
+          </div>
+          <button class="btn-submit" id="btnSubmitWL" onclick="submitWL()">KIRIM PENDAFTARAN 📱</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">MIRACLE<span>RP</span></div>
+  <div class="footer-tag">SAN ANDREAS MULTIPLAYER — INDONESIA</div>
+  <ul class="footer-links">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#features">Fitur</a></li>
+    <li><a href="#community">Community</a></li>
+    <li><a href="#news">Berita</a></li>
+    <li><a href="#staff">Staff</a></li>
+    <li><a href="#daftar">Daftar</a></li>
+    <li><a href="admin.html">Admin</a></li>
+  </ul>
+  <p class="footer-copy">© 2024 MIRACLE RP. ALL RIGHTS RESERVED.</p>
+</footer>
+
+<!-- LOGIN MODAL -->
+<div class="overlay" id="modalLogin">
+  <div class="modal" style="max-width:360px;text-align:center;">
+    <button class="modal-close" onclick="closeModal('modalLogin')">✕</button>
+    <div style="font-size:2rem;margin-bottom:.8rem;">🎮</div>
+    <div class="modal-title">MASUK AKUN</div>
+    <div class="modal-sub">Login dengan akun Google kamu untuk mengakses form pendaftaran whitelist.</div>
+    <div class="auth-error" id="authError"></div>
+    <button class="btn-google" onclick="doGoogleLogin()">
+      <svg width="18" height="18" viewBox="0 0 48 48" style="flex-shrink:0"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+      LANJUTKAN DENGAN GOOGLE
+    </button>
+    <p style="font-family:'Space Mono',monospace;font-size:.55rem;color:var(--muted);margin-top:1rem;line-height:1.7;">Akun baru otomatis terdaftar saat pertama kali login.<br>Data profil diambil dari akun Google kamu.</p>
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="overlay" id="modalSuccess">
+  <div class="modal modal-success">
+    <button class="modal-close" onclick="closeModal('modalSuccess')">✕</button>
+    <div class="modal-title">✅ PENDAFTARAN TERKIRIM!</div>
+    <div class="modal-sub">Admin akan menghubungi via WhatsApp dalam 1×24 jam.</div>
+    <p style="color:var(--muted2);font-size:.9rem;line-height:1.8;font-weight:400;">Pastikan WhatsApp kamu <strong style="color:var(--green)">aktif dan bisa dihubungi</strong>. Admin akan melakukan verifikasi nomor sebelum whitelist disetujui.</p>
+    <a href="#" onclick="openWA(event)" class="btn-primary" style="margin-top:1.5rem;display:block;text-align:center;text-decoration:none;">JOIN WA GROUP</a>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, push, onValue, get, set, update, remove, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD5JGQ3eARM5Lo2IG3mkpdx7p3uh0nrBIk",
+  authDomain: "samp-miracle.firebaseapp.com",
+  projectId: "samp-miracle",
+  storageBucket: "samp-miracle.firebasestorage.app",
+  messagingSenderId: "465126706451",
+  appId: "1:465126706451:web:b94f2359a348ff7078dee6",
+  measurementId: "G-ZCRVX5DCPR",
+  databaseURL: "https://samp-miracle-default-rtdb.asia-southeast1.firebasedatabase.app"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+
+let currentUser = null;
+let currentUserData = null;
+const STAFF_ROLES = ['moderator','admin','headadmin','developer','owner'];
+const POST_COOLDOWN = 60 * 60 * 1000; // 1 hour
+
+// ── LOADER ──
+window.addEventListener('load', () => setTimeout(() => document.getElementById('loader').classList.add('hide'), 1200));
+
+// ── TOAST ──
+window.showToast = function(title, msg, type='info', dur=3500) {
+  const t = document.getElementById('toast');
+  t.className = 'toast ' + type;
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+};
+
+// ── UTILS ──
+window.openModal = (id) => document.getElementById(id).classList.add('open');
+window.closeModal = (id) => document.getElementById(id).classList.remove('open');
+window.openWA = (e) => { e.preventDefault(); window.open('https://wa.me/628xxxxxxxxxx', '_blank'); };
+window.copyIP = () => { navigator.clipboard.writeText(document.getElementById('serverIP').textContent); showToast('COPIED!','Server IP disalin ke clipboard.','success'); };
+window.scrollToDaftar = () => document.getElementById('daftar').scrollIntoView({behavior:'smooth'});
+window.toggleMobileMenu = () => document.getElementById('mobileMenu').classList.toggle('open');
+window.closeMobileMenu = () => document.getElementById('mobileMenu').classList.remove('open');
+
+function timeAgo(ts) {
+  const diff = Date.now() - ts;
+  const m = Math.floor(diff/60000);
+  if (m < 1) return 'baru saja';
+  if (m < 60) return `${m} menit lalu`;
+  const h = Math.floor(m/60);
+  if (h < 24) return `${h} jam lalu`;
+  return `${Math.floor(h/24)} hari lalu`;
+}
+
+// ── GOOGLE LOGIN ──
+window.doGoogleLogin = async function() {
+  const errEl = document.getElementById('authError');
+  errEl.classList.remove('show');
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+    const snap = await get(ref(db, 'users/' + user.uid));
+    if (!snap.exists()) {
+      const username = user.displayName || user.email.split('@')[0];
+      await set(ref(db, 'users/' + user.uid), {
+        username,
+        email: user.email,
+        uid: user.uid,
+        photoURL: user.photoURL || '',
+        role: 'user',
+        status: 'active',
+        createdAt: Date.now()
+      });
+      writeLog('AUTH', `User baru via Google: ${username} (${user.email})`);
+    }
+    closeModal('modalLogin');
+    showToast('LOGIN BERHASIL!', 'Selamat datang 👋', 'success');
+  } catch(e) {
+    if (e.code !== 'auth/popup-closed-by-user') {
+      errEl.textContent = 'Login gagal: ' + e.message;
+      errEl.classList.add('show');
+    }
+  }
+};
+
+// ── LOGOUT ──
+window.doLogout = async function() {
+  await signOut(auth);
+  showToast('LOGOUT', 'Kamu telah keluar.', 'info');
+};
+
+// ── AUTH STATE ──
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+  const navUser = document.getElementById('navUser');
+  const btnLogin = document.getElementById('btnNavLogin');
+  const daftarGuest = document.getElementById('daftarGuest');
+  const daftarUser = document.getElementById('daftarUser');
+  const feedPostBox = document.getElementById('feedPostBox');
+  const feedLoginHint = document.getElementById('feedLoginHint');
+
+  if (user) {
+    btnLogin.style.display = 'none';
+    navUser.classList.add('show');
+    
+    // ── REALTIME USER DATA LISTENER ──
+    onValue(ref(db, 'users/' + user.uid), (snap) => {
+      if (snap.exists()) {
+        currentUserData = snap.val();
+        const displayName = currentUserData.wlStatus === 'accepted' && currentUserData.wlName
+          ? currentUserData.wlName
+          : currentUserData.username || 'User';
+        document.getElementById('navUserName').textContent = displayName;
+
+        if (STAFF_ROLES.includes(currentUserData.role)) {
+          if (!document.querySelector('a[href="admin.html"]')) {
+            const adminLi = document.createElement('li');
+            adminLi.innerHTML = '<a href="admin.html" style="color:var(--gold)">ADMIN</a>';
+            document.querySelector('.nav-links').appendChild(adminLi);
+          }
+        }
+
+        daftarGuest.style.display = 'none';
+        daftarUser.style.display = 'block';
+        feedPostBox.style.display = 'block';
+        feedLoginHint.style.display = 'none';
+        checkUserWLStatus(user.uid, currentUserData);
+        startPostCooldownCheck();
+      }
+    });
+  } else {
+    currentUserData = null;
+    btnLogin.style.display = '';
+    navUser.classList.remove('show');
+    daftarGuest.style.display = 'block';
+    daftarUser.style.display = 'none';
+    feedPostBox.style.display = 'none';
+    feedLoginHint.style.display = 'block';
+  }
+});
+
+// ── WL STATUS ──
+function checkUserWLStatus(uid, userData) {
+  const form = document.getElementById('daftarForm');
+  const delayBanner = document.getElementById('delayBanner');
+  const wlBanner = document.getElementById('wlStatusBanner');
+  const bannedBanner = document.getElementById('bannedBanner');
+  const btn = document.getElementById('btnSubmitWL');
+
+  delayBanner.classList.remove('show');
+  wlBanner.style.display = 'none';
+  bannedBanner.style.display = 'none';
+  btn.disabled = false;
+  form.style.opacity = '';
+  form.style.pointerEvents = '';
+
+  if (userData.status === 'banned') {
+    bannedBanner.style.display = 'block';
+    document.getElementById('banReason').textContent = 'Alasan: ' + (userData.banReason || '-');
+    form.style.opacity = '.3';
+    form.style.pointerEvents = 'none';
+    return;
+  }
+
+  if (userData.wlStatus === 'accepted') {
+    wlBanner.style.display = 'block';
+    document.getElementById('wlICName').textContent = userData.wlName || '-';
+    form.style.opacity = '.3';
+    form.style.pointerEvents = 'none';
+    return;
+  }
+
+  if (userData.wlStatus === 'pending') {
+    const lastSubmit = userData.lastWLSubmit || 0;
+    const now = Date.now();
+    const diff = 24 * 60 * 60 * 1000 - (now - lastSubmit);
+    delayBanner.classList.add('show');
+    btn.disabled = true;
+    form.style.opacity = '.5';
+    form.style.pointerEvents = 'none';
+    if (diff > 0) {
+      startDelayTimer(diff);
+    } else {
+      document.getElementById('delayTimer').textContent = 'Menunggu konfirmasi staff';
+    }
+  }
+}
+
+function startDelayTimer(ms) {
+  const el = document.getElementById('delayTimer');
+  const tick = () => {
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    ms -= 1000;
+    if (ms > 0) setTimeout(tick, 1000);
+    else el.textContent = 'Menunggu konfirmasi staff';
+  };
+  tick();
+}
+
+// ── SUBMIT WL ──
+window.submitWL = async function() {
+  if (!currentUser || !currentUserData) return showToast('ERROR','Login terlebih dahulu.','error');
+  if (currentUserData.status === 'banned') return;
+
+  const name = document.getElementById('fName').value.trim();
+  const wa = document.getElementById('fWA').value.trim();
+  const age = document.getElementById('fAge').value;
+  const faction = document.getElementById('fFaction').value;
+  const exp = document.getElementById('fExp').value;
+  const reason = document.getElementById('fReason').value.trim();
+
+  if (!name || !wa || !age || !reason) return showToast('⚠ TIDAK LENGKAP','Isi semua field.','error');
+  if (!/^[A-Z][a-z]+_[A-Z][a-z]+$/.test(name)) return showToast('⚠ FORMAT SALAH','Gunakan format Nama_Belakang (contoh: John_Doe)','error');
+  if (!/^0[0-9]{9,12}$/.test(wa)) return showToast('⚠ NOMOR WA','Format: 08xxxxxxxxxx','error');
+
+  try {
+    const btn = document.getElementById('btnSubmitWL');
+    btn.disabled = true;
+    btn.textContent = 'MENGIRIM...';
+
+    const now = Date.now();
+    await set(ref(db, 'registrations/' + currentUser.uid), {
+      uid: currentUser.uid,
+      username: currentUserData.username,
+      email: currentUserData.email,
+      name, wa, age: parseInt(age), faction, exp, reason,
+      status: 'pending',
+      submittedAt: now
+    });
+    await update(ref(db, 'users/' + currentUser.uid), {
+      wlStatus: 'pending',
+      lastWLSubmit: now,
+      wlName: name,
+      wlWA: wa
+    });
+
+    writeLog('WL', `Pendaftaran WL baru: ${name} | WA: ${wa} | oleh ${currentUserData.username}`);
+    openModal('modalSuccess');
+    btn.textContent = 'SUDAH DIKIRIM ✓';
+    currentUserData.wlStatus = 'pending';
+    currentUserData.lastWLSubmit = now;
+    checkUserWLStatus(currentUser.uid, currentUserData);
+  } catch(e) {
+    showToast('ERROR','Gagal mengirim. Coba lagi.','error');
+    document.getElementById('btnSubmitWL').disabled = false;
+    document.getElementById('btnSubmitWL').textContent = 'KIRIM PENDAFTARAN 📱';
+  }
+};
+
+// ── WRITE LOG ──
+function writeLog(type, msg) {
+  push(ref(db, 'logs'), { type, msg, ts: Date.now() }).catch(()=>{});
+}
+
+// ── COUNT UP ──
+function countUp(el, target, dur=1400) {
+  let v = 0;
+  const step = target / (dur / 16);
+  const t = setInterval(() => {
+    v += step;
+    if (v >= target) { el.textContent = target.toLocaleString(); clearInterval(t); }
+    else el.textContent = Math.floor(v).toLocaleString();
+  }, 16);
+}
+
+// ══════════════════════════════════════
+// ── COMMUNITY FEED ──
+// ══════════════════════════════════════
+let postCooldownInterval = null;
+
+function startPostCooldownCheck() {
+  const check = async () => {
+    if (!currentUser || !currentUserData) return;
+    const snap = await get(ref(db, 'users/' + currentUser.uid));
+    if (!snap.exists()) return;
+    const ud = snap.val();
+    const lastPost = ud.lastPostAt || 0;
+    const remaining = POST_COOLDOWN - (Date.now() - lastPost);
+    const btn = document.getElementById('btnPost');
+    const hint = document.getElementById('postCooldownHint');
+    if (remaining > 0) {
+      btn.disabled = true;
+      const m = Math.floor(remaining / 60000);
+      const s = Math.floor((remaining % 60000) / 1000);
+      hint.textContent = `⏳ Cooldown: ${m}m ${s}s`;
+    } else {
+      btn.disabled = false;
+      hint.textContent = '';
+    }
+  };
+  check();
+  if (postCooldownInterval) clearInterval(postCooldownInterval);
+  postCooldownInterval = setInterval(check, 5000);
+}
+
+window.submitPost = async function() {
+  if (!currentUser || !currentUserData) return showToast('ERROR','Login terlebih dahulu.','error');
+  if (currentUserData.status === 'banned') return showToast('BANNED','Akun kamu telah dibanned.','error');
+  const content = document.getElementById('postContent').value.trim();
+  if (!content) return showToast('ERROR','Tulis sesuatu dulu.','error');
+  if (content.length > 500) return showToast('TERLALU PANJANG','Maksimal 500 karakter.','error');
+
+  // Check cooldown from DB
+  const snap = await get(ref(db, 'users/' + currentUser.uid));
+  const ud = snap.val();
+  const lastPost = ud.lastPostAt || 0;
+  if (Date.now() - lastPost < POST_COOLDOWN) {
+    const remaining = Math.ceil((POST_COOLDOWN - (Date.now()-lastPost)) / 60000);
+    return showToast('COOLDOWN',`Tunggu ${remaining} menit lagi.`,'error');
+  }
+
+  const btn = document.getElementById('btnPost');
+  btn.disabled = true;
+  btn.textContent = 'POSTING...';
+
+  const displayName = currentUserData.wlStatus === 'accepted' && currentUserData.wlName
+    ? currentUserData.wlName
+    : currentUserData.username;
+
+  try {
+    const postRef = await push(ref(db, 'posts'), {
+      uid: currentUser.uid,
+      author: displayName,
+      role: currentUserData.role || 'user',
+      wlStatus: currentUserData.wlStatus || '',
+      content,
+      ts: Date.now(),
+      likes: {},
+      likeCount: 0
+    });
+    await update(ref(db, 'users/' + currentUser.uid), { lastPostAt: Date.now() });
+    document.getElementById('postContent').value = '';
+    btn.textContent = 'POST';
+    startPostCooldownCheck();
+    showToast('POSTED!','Postingan berhasil dikirim.','success');
+  } catch(e) {
+    showToast('ERROR',e.message,'error');
+    btn.disabled = false;
+    btn.textContent = 'POST';
+  }
+};
+
+window.toggleLike = async function(postKey) {
+  if (!currentUser) return openModal('modalLogin');
+  if (currentUserData && currentUserData.status === 'banned') return showToast('BANNED','Akun kamu telah dibanned.','error');
+  const likeRef = ref(db, `posts/${postKey}/likes/${currentUser.uid}`);
+  const snap = await get(likeRef);
+  if (snap.exists()) {
+    await remove(likeRef);
+  } else {
+    await set(likeRef, true);
+  }
+};
+
+window.toggleComments = function(postKey) {
+  const el = document.getElementById('comments-' + postKey);
+  if (el) el.classList.toggle('open');
+};
+
+window.submitComment = async function(postKey) {
+  if (!currentUser || !currentUserData) return openModal('modalLogin');
+  if (currentUserData.status === 'banned') return showToast('BANNED','Akun kamu telah dibanned.','error');
+  const input = document.getElementById('commentInput-' + postKey);
+  const text = input.value.trim();
+  if (!text) return;
+  const displayName = currentUserData.wlStatus === 'accepted' && currentUserData.wlName
+    ? currentUserData.wlName
+    : currentUserData.username;
+  await push(ref(db, `posts/${postKey}/comments`), {
+    uid: currentUser.uid,
+    author: displayName,
+    role: currentUserData.role || 'user',
+    text,
+    ts: Date.now()
+  });
+  input.value = '';
+};
+
+window.deletePost = async function(postKey, postUid) {
+  if (!currentUser) return;
+  const isOwn = currentUser.uid === postUid;
+  const isStaff = currentUserData && STAFF_ROLES.includes(currentUserData.role);
+  if (!isOwn && !isStaff) return showToast('DITOLAK','Kamu tidak bisa hapus postingan ini.','error');
+  if (!confirm('Hapus postingan ini?')) return;
+  await remove(ref(db, 'posts/' + postKey));
+  showToast('DIHAPUS','Postingan dihapus.','success');
+};
+
+window.deleteComment = async function(postKey, commentKey, commentUid) {
+  if (!currentUser) return;
+  const isOwn = currentUser.uid === commentUid;
+  const isStaff = currentUserData && STAFF_ROLES.includes(currentUserData.role);
+  if (!isOwn && !isStaff) return;
+  await remove(ref(db, `posts/${postKey}/comments/${commentKey}`));
+};
+
+function getRoleBadgeHtml(role) {
+  const map = {
+    owner:`<span class="post-role-badge r-owner">OWNER</span>`,
+    headadmin:`<span class="post-role-badge r-headadmin">HEAD ADMIN</span>`,
+    admin:`<span class="post-role-badge r-admin">ADMIN</span>`,
+    developer:`<span class="post-role-badge r-dev">DEV</span>`,
+    moderator:`<span class="post-role-badge r-mod">MOD</span>`,
+  };
+  return map[role] || '';
+}
+
+function loadFeed() {
+  const q = query(ref(db, 'posts'), orderByChild('ts'), limitToLast(50));
+  onValue(q, (snap) => {
+    const feedList = document.getElementById('feedList');
+    if (!snap.exists()) {
+      feedList.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--muted);font-family:\'Space Mono\',monospace;font-size:.65rem;border:1px solid var(--border2);">Belum ada postingan. Jadilah yang pertama!</div>';
+      document.getElementById('wStatPosts').textContent = '0';
+      return;
+    }
+    const posts = Object.entries(snap.val()).reverse();
+    document.getElementById('wStatPosts').textContent = posts.length;
+
+    feedList.innerHTML = posts.map(([key, p]) => {
+      const likeCount = p.likes ? Object.keys(p.likes).length : 0;
+      const myLike = currentUser && p.likes && p.likes[currentUser.uid];
+      const commentCount = p.comments ? Object.keys(p.comments).length : 0;
+      const canDelete = currentUser && (currentUser.uid === p.uid || (currentUserData && STAFF_ROLES.includes(currentUserData.role)));
+
+      const commentsHtml = p.comments ? Object.entries(p.comments).map(([ck, c]) => {
+        const canDelC = currentUser && (currentUser.uid === c.uid || (currentUserData && STAFF_ROLES.includes(currentUserData.role)));
+        return `<div class="comment-item">
+          <div class="comment-ava">${(c.author||'?')[0]}</div>
+          <div class="comment-body">
+            <span class="comment-name">${c.author||'?'}</span> ${getRoleBadgeHtml(c.role)}
+            <div class="comment-text">${escHtml(c.text)}</div>
+            <span class="comment-time">${timeAgo(c.ts)}${canDelC?` · <span style="color:var(--red);cursor:pointer;" onclick="deleteComment('${key}','${ck}','${c.uid}')">hapus</span>`:''}</span>
+          </div>
+        </div>`;
+      }).join('') : '';
+
+      return `<div class="post-card">
+        <div class="post-header">
+          <div class="post-author">
+            <div class="post-ava">${(p.author||'?')[0]}</div>
+            <div>
+              <span class="post-name">${p.author||'?'}</span>${getRoleBadgeHtml(p.role)}
+              ${p.wlStatus==='accepted'?'<span style="font-family:Space Mono,monospace;font-size:.5rem;color:var(--green);margin-left:.3rem;">✓WL</span>':''}
+            </div>
+          </div>
+          <span class="post-time">${timeAgo(p.ts)}</span>
+        </div>
+        <div class="post-content">${escHtml(p.content)}</div>
+        <div class="post-actions">
+          <button class="btn-like${myLike?' liked':''}" onclick="toggleLike('${key}')">❤ ${likeCount}</button>
+          <button class="btn-comment-toggle" onclick="toggleComments('${key}')">💬 ${commentCount}</button>
+          ${canDelete?`<button class="btn-delete-post" onclick="deletePost('${key}','${p.uid}')">🗑</button>`:''}
+        </div>
+        <div class="comments-section" id="comments-${key}">
+          ${commentsHtml}
+          ${currentUser?`<div class="comment-input-row">
+            <input class="comment-input" id="commentInput-${key}" placeholder="Tulis komentar..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitComment('${key}')}">
+            <button class="btn-send-comment" onclick="submitComment('${key}')">KIRIM</button>
+          </div>`:'<div style="font-family:Space Mono,monospace;font-size:.6rem;color:var(--muted);margin-top:.5rem;"><span style="cursor:pointer;color:var(--gold);" onclick="openModal(\'modalLogin\')">Login</span> untuk komentar.</div>'}
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+
+function escHtml(t) {
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+function loadAnnouncements() {
+  const q = query(ref(db, 'announcements'), orderByChild('ts'), limitToLast(10));
+  onValue(q, (snap) => {
+    const announcementsList = document.getElementById('announcementsList');
+    if (!snap.exists()) {
+      announcementsList.innerHTML = '<div style="grid-column:1/-1;padding:2rem;text-align:center;color:var(--muted);font-family:\'Space Mono\',monospace;font-size:.65rem;border:1px solid var(--border2);background:var(--dark2);">Tidak ada pengumuman.</div>';
+      return;
+    }
+    const announcements = Object.entries(snap.val()).reverse();
+    announcementsList.innerHTML = announcements.map(([key, a]) => {
+      return `<div class="announcement-card" style="background:var(--dark2);padding:1.4rem;border-top:3px solid var(--gold);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem;gap:.5rem;">
+          <span style="font-family:'Space Mono',monospace;font-size:.65rem;color:var(--gold);letter-spacing:1px;text-transform:uppercase;font-weight:700;">${a.tag || 'ANNOUNCEMENT'}</span>
+          <span style="font-family:'Space Mono',monospace;font-size:.55rem;color:var(--muted);">${timeAgo(a.ts)}</span>
+        </div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px;color:#E8E8F8;margin-bottom:.6rem;">${escHtml(a.title)}</div>
+        <div style="color:var(--text);font-size:.95rem;line-height:1.6;margin-bottom:.8rem;">${escHtml(a.content)}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);">by ${a.author || 'Admin'}</div>
+      </div>`;
+    }).join('');
+  });
+}
+
+// ── DEFAULT DATA ──
+const defFeatures = [
+  {icon:'🎭',title:'ROLEPLAY SYSTEM',desc:'Sistem RP lengkap dengan job dinamis, property, bisnis, dan mekanisme sosial yang mendalam.',order:1},
+  {icon:'🏛️',title:'FRAKSI LEGAL',desc:'LSPD, SAFD, Pengadilan dengan hierarki dan sistem promosi nyata.',order:2},
+  {icon:'💼',title:'FRAKSI ILEGAL',desc:'Mafia, gang, kartel dengan wilayah, turf war, drug system.',order:3},
+  {icon:'🏠',title:'PROPERTY SYSTEM',desc:'Beli, sewa, kustomisasi properti dengan interior unik.',order:4},
+  {icon:'🚗',title:'VEHICLE SYSTEM',desc:'Ratusan kendaraan, showroom, modifikasi realistis.',order:5},
+  {icon:'📱',title:'WHATSAPP ONLY',desc:'Semua komunikasi via WhatsApp. Daftar, lapor bug, minta bantuan.',order:6},
+];
+const defStaff = [
+  {name:'Owner',role:'Owner',emoji:'👑',class:'r-owner',order:1},
+  {name:'Co-Owner',role:'Co-Owner',emoji:'🎖️',class:'r-owner',order:2},
+  {name:'Head Admin',role:'Head Admin',emoji:'🛡️',class:'r-headadmin',order:3},
+  {name:'Developer',role:'Developer',emoji:'💻',class:'r-dev',order:4},
+  {name:'Admin',role:'Admin',emoji:'⚔️',class:'r-admin',order:5},
+  {name:'Moderator',role:'Moderator',emoji:'🔰',class:'r-mod',order:6},
+];
+const defNews = [
+  {tag:'UPDATE',title:'Grand Opening MIRACLE RP!',content:'Server resmi dibuka! Jadilah bagian dari komunitas RP terbaik Indonesia. Bonus starter untuk 100 player pertama.',author:'Owner',date:'2024-12-01',order:1},
+  {tag:'EVENT',title:'Event Peresmian Fraksi',content:'',author:'Head Admin',date:'2024-12-05',order:2},
+  {tag:'HOTFIX',title:'Perbaikan Bug Spawn & Inventory',content:'',author:'Developer',date:'2024-12-08',order:3},
+  {tag:'NOTICE',title:'Peraturan Server v2.0',content:'',author:'Head Admin',date:'2024-12-10',order:4},
+];
+
+function renderFeatures(data) {
+  document.getElementById('featGrid').innerHTML = data.map(f=>`
+    <div class="feat-card">
+      <div class="feat-icon">${f.icon}</div>
+      <div class="feat-title">${f.title}</div>
+      <div class="feat-desc">${f.desc}</div>
+    </div>`).join('');
+}
+
+function renderStaff(data) {
+  document.getElementById('staffGrid').innerHTML = data.map(s=>`
+    <div class="staff-card">
+      <div class="staff-ava">${s.emoji||'👤'}</div>
+      <div class="staff-name">${s.name}</div>
+      <span class="role-badge ${s.class||'r-mod'}">${s.role}</span>
+    </div>`).join('');
+}
+
+window.allNews = defNews;
+function renderNews(data) {
+  const m = data[0];
+  document.getElementById('mnTag').textContent = m.tag||'NEWS';
+  document.getElementById('mnTitle').textContent = m.title;
+  document.getElementById('mnContent').textContent = m.content||'Klik untuk baca selengkapnya.';
+  document.getElementById('mnAuthor').textContent = 'by '+(m.author||'Admin');
+  document.getElementById('mnDate').textContent = m.date||'-';
+  document.getElementById('newsSidebar').innerHTML = data.slice(1,5).map((n,i)=>`
+    <div class="news-side-item${i===0?' active':''}" onclick="selectNews(${i+1})">
+      <div class="news-tag">${n.tag||'NEWS'}</div>
+      <div class="news-side-title">${n.title}</div>
+      <div class="news-side-date">${n.date||'-'}</div>
+    </div>`).join('');
+}
+
+window.selectNews = function(idx) {
+  const n = window.allNews[idx];
+  if (!n) return;
+  document.getElementById('mnTag').textContent = n.tag||'NEWS';
+  document.getElementById('mnTitle').textContent = n.title;
+  document.getElementById('mnContent').textContent = n.content||'-';
+  document.getElementById('mnAuthor').textContent = 'by '+(n.author||'Admin');
+  document.getElementById('mnDate').textContent = n.date||'-';
+  document.querySelectorAll('.news-side-item').forEach((el,i)=>el.classList.toggle('active',i===idx-1));
+};
+
+// ── LOAD DATA ──
+function loadData() {
+  renderFeatures(defFeatures);
+  renderStaff(defStaff);
+  renderNews(defNews);
+  loadFeed();
+  loadAnnouncements();
+
+  onValue(ref(db,'config'),(s)=>{
+    if(s.exists()&&s.val().serverIP) document.getElementById('serverIP').textContent=s.val().serverIP;
+    if(s.exists()&&s.val().waNumber) {
+      // update WA links dynamically
+    }
+  });
+
+  let sa=false;
+  onValue(ref(db,'stats'),(s)=>{
+    const d = s.exists()?s.val():{online:47,members:1284,factions:12,news:5};
+    document.getElementById('wStatOnline').textContent = d.online||0;
+    if(!sa){sa=true;
+      countUp(document.getElementById('statOnline'),d.online||47);
+      countUp(document.getElementById('statMembers'),d.members||1284);
+      countUp(document.getElementById('statFactions'),d.factions||12);
+      countUp(document.getElementById('statNews'),d.news||5);
+    } else {
+      document.getElementById('statOnline').textContent=(d.online||0).toLocaleString();
+      document.getElementById('statMembers').textContent=(d.members||0).toLocaleString();
+      document.getElementById('statFactions').textContent=(d.factions||0).toLocaleString();
+      document.getElementById('statNews').textContent=(d.news||0).toLocaleString();
+    }
+  });
+
+  onValue(ref(db,'users'),(s)=>{
+    if(!s.exists()) return;
+    const all = Object.values(s.val());
+    document.getElementById('wStatWL').textContent = all.filter(u=>u.wlStatus==='accepted').length;
+  });
+
+  onValue(ref(db,'features'),(s)=>{ if(s.exists()) renderFeatures(Object.values(s.val()).sort((a,b)=>(a.order||0)-(b.order||0))); });
+  onValue(ref(db,'staff'),(s)=>{ if(s.exists()) renderStaff(Object.values(s.val()).sort((a,b)=>(a.order||0)-(b.order||0))); });
+  onValue(ref(db,'news'),(s)=>{ if(s.exists()){window.allNews=Object.values(s.val()).sort((a,b)=>(a.order||0)-(b.order||0));renderNews(window.allNews);} });
+}
+
+loadData();
+</script>
+</body>
+</html>
