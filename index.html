@@ -146,6 +146,13 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 .r-mod{background:rgba(255,107,0,.08);color:#FF9050;border:1px solid rgba(255,107,0,.25);}
 .r-dev{background:rgba(100,180,255,.08);color:#80C8FF;border:1px solid rgba(100,180,255,.25);}
 .r-headadmin{background:rgba(180,100,255,.08);color:#CC88FF;border:1px solid rgba(180,100,255,.25);}
+.r-volunteer{background:rgba(100,200,150,.08);color:#6DD5A8;border:1px solid rgba(100,200,150,.25);}
+.r-juniorhelper{background:rgba(100,200,200,.08);color:#6DD5D5;border:1px solid rgba(100,200,200,.25);}
+.r-seniorhelper{background:rgba(100,180,255,.08);color:#80C8FF;border:1px solid rgba(100,180,255,.25);}
+.r-junioradmin{background:rgba(255,180,100,.08);color:#FFB86E;border:1px solid rgba(255,180,100,.25);}
+.r-senioradmin{background:rgba(255,150,100,.08);color:#FF9966;border:1px solid rgba(255,150,100,.25);}
+.r-management{background:rgba(255,100,100,.08);color:#FF7575;border:1px solid rgba(255,100,100,.25);}
+.r-communityhandle{background:rgba(180,150,255,.08);color:#D5B8FF;border:1px solid rgba(180,150,255,.25);}
 
 /* ══ COMMUNITY / FEED ══ */
 #community{background:var(--dark2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
@@ -615,7 +622,7 @@ const googleProvider = new GoogleAuthProvider();
 
 let currentUser = null;
 let currentUserData = null;
-const STAFF_ROLES = ['moderator','admin','headadmin','developer','owner'];
+const STAFF_ROLES = ['volunteer','juniorhelper','seniorhelper','junioradmin','senioradmin','management','communityhandle','moderator','admin','headadmin','developer','owner'];
 const POST_COOLDOWN = 60 * 60 * 1000; // 1 hour
 
 // ── LOADER ──
@@ -720,9 +727,17 @@ onAuthStateChanged(auth, async (user) => {
 
         if (STAFF_ROLES.includes(currentUserData.role)) {
           if (!document.querySelector('a[href="admin.html"]')) {
+            // Add to desktop menu
             const adminLi = document.createElement('li');
             adminLi.innerHTML = '<a href="admin.html" style="color:var(--gold)">ADMIN</a>';
             document.querySelector('.nav-links').appendChild(adminLi);
+            // Add to mobile menu
+            const adminMobile = document.createElement('a');
+            adminMobile.href = 'admin.html';
+            adminMobile.style.color = 'var(--gold)';
+            adminMobile.textContent = 'ADMIN';
+            adminMobile.onclick = (e) => { closeMobileMenu(); };
+            document.getElementById('mobileMenu').appendChild(adminMobile);
           }
         }
 
@@ -1007,9 +1022,16 @@ function getRoleBadgeHtml(role) {
   const map = {
     owner:`<span class="post-role-badge r-owner">OWNER</span>`,
     headadmin:`<span class="post-role-badge r-headadmin">HEAD ADMIN</span>`,
+    senioradmin:`<span class="post-role-badge r-senioradmin">SENIOR ADMIN</span>`,
+    junioradmin:`<span class="post-role-badge r-junioradmin">JUNIOR ADMIN</span>`,
     admin:`<span class="post-role-badge r-admin">ADMIN</span>`,
     developer:`<span class="post-role-badge r-dev">DEV</span>`,
+    management:`<span class="post-role-badge r-management">MANAGEMENT</span>`,
+    communityhandle:`<span class="post-role-badge r-communityhandle">COMMUNITY</span>`,
     moderator:`<span class="post-role-badge r-mod">MOD</span>`,
+    seniorhelper:`<span class="post-role-badge r-seniorhelper">SENIOR HELPER</span>`,
+    juniorhelper:`<span class="post-role-badge r-juniorhelper">JUNIOR HELPER</span>`,
+    volunteer:`<span class="post-role-badge r-volunteer">VOLUNTEER</span>`,
   };
   return map[role] || '';
 }
@@ -1113,9 +1135,16 @@ const defStaff = [
   {name:'Owner',role:'Owner',emoji:'👑',class:'r-owner',order:1},
   {name:'Co-Owner',role:'Co-Owner',emoji:'🎖️',class:'r-owner',order:2},
   {name:'Head Admin',role:'Head Admin',emoji:'🛡️',class:'r-headadmin',order:3},
-  {name:'Developer',role:'Developer',emoji:'💻',class:'r-dev',order:4},
-  {name:'Admin',role:'Admin',emoji:'⚔️',class:'r-admin',order:5},
-  {name:'Moderator',role:'Moderator',emoji:'🔰',class:'r-mod',order:6},
+  {name:'Senior Admin',role:'Senior Admin',emoji:'⚔️',class:'r-senioradmin',order:4},
+  {name:'Junior Admin',role:'Junior Admin',emoji:'🗡️',class:'r-junioradmin',order:5},
+  {name:'Developer',role:'Developer',emoji:'💻',class:'r-dev',order:6},
+  {name:'Management',role:'Management',emoji:'📊',class:'r-management',order:7},
+  {name:'Community Handle',role:'Community Handle',emoji:'💬',class:'r-communityhandle',order:8},
+  {name:'Admin',role:'Admin',emoji:'⚡',class:'r-admin',order:9},
+  {name:'Moderator',role:'Moderator',emoji:'🔰',class:'r-mod',order:10},
+  {name:'Senior Helper',role:'Senior Helper',emoji:'🤝',class:'r-seniorhelper',order:11},
+  {name:'Junior Helper',role:'Junior Helper',emoji:'👋',class:'r-juniorhelper',order:12},
+  {name:'Volunteer',role:'Volunteer',emoji:'🙋',class:'r-volunteer',order:13},
 ];
 const defNews = [
   {tag:'UPDATE',title:'Grand Opening MIRACLE RP!',content:'Server resmi dibuka! Jadilah bagian dari komunitas RP terbaik Indonesia. Bonus starter untuk 100 player pertama.',author:'Owner',date:'2024-12-01',order:1},
