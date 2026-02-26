@@ -632,9 +632,17 @@ window.showToast = function(title, msg, type='info', dur=3500) {
 };
 
 // ── UTILS ──
+let waNumber = '62895329018240';
+let waGroup = 'https://chat.whatsapp.com/FFOolIdTvljDznFn2zWbho';
+
 window.openModal = (id) => document.getElementById(id).classList.add('open');
 window.closeModal = (id) => document.getElementById(id).classList.remove('open');
-window.openWA = (e) => { e.preventDefault(); window.open('https://wa.me/628xxxxxxxxxx', '_blank'); };
+window.openWA = (e) => { 
+  e.preventDefault(); 
+  // Gunakan waGroup jika ada, jika tidak gunakan wa.me
+  const link = waGroup || `https://wa.me/${waNumber}`;
+  window.open(link, '_blank'); 
+};
 window.copyIP = () => { navigator.clipboard.writeText(document.getElementById('serverIP').textContent); showToast('COPIED!','Server IP disalin ke clipboard.','success'); };
 window.scrollToDaftar = () => document.getElementById('daftar').scrollIntoView({behavior:'smooth'});
 window.toggleMobileMenu = () => document.getElementById('mobileMenu').classList.toggle('open');
